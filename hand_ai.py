@@ -1,12 +1,11 @@
-import cv2
-import mediapipe as mp
-import torch
-import torch.nn as nn
-import numpy as np
+import cv2                     # 画像処理用のライブラリ
+import mediapipe as mp         # 手の検出とランドマーク推定用のライブラリ
+import torch                   # PyTorchライブラリ
+import torch.nn as nn          # ニューラルネットワーク用ライブラリ
+import numpy as np             # 数値計算用ライブラリ
 
-# =====================
+
 # モデル定義（学習時と同じ構造）
-# =====================
 class HandClassifier(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
         super().__init__()
@@ -18,21 +17,18 @@ class HandClassifier(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-# =====================
 # モデルロード
-# =====================
-checkpoint = torch.load("hand_classifier.pth", map_location="cpu", weights_only=False)
+checkpoint = torch.load("hand_classifier.pth", map_location="cpu", weights_only=False)   # 学習済みモデル読み込み
 idx_to_label = checkpoint["idx_to_label"]
-input_size = 63
-num_classes = len(idx_to_label)
+input_size = 63        # 21ランドマーク×3座標
+num_classes = len(idx_to_label)   # 3クラス（グー、チョキ、パー）
 
 model = HandClassifier(input_size, 128, num_classes)
 model.load_state_dict(checkpoint["model_state_dict"])
 model.eval()
 
-# =====================
+
 # Mediapipe設定
-# =====================
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 hands = mp_hands.Hands(max_num_hands=1, min_detection_confidence=0.5)
